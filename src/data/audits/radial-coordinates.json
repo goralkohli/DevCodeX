@@ -1,0 +1,62 @@
+{
+  "topicId": "radial-coordinates",
+  "topicTitle": "Radial Coordinate Math",
+  "generatedAt": "2026-11-22T20:00:00.000Z",
+  "engine": "deepseek-chat",
+  "complexity": {
+    "time": "O(1)",
+    "space": "O(1)",
+    "explanation": "Instantiating a CanvasGradient object executes in constant O(1) time and space by allocating an internal color-ramp table. Geometric rasterization occurs per pixel during fillRect on the GPU/rasterizer."
+  },
+  "executionTrace": [
+    {
+      "step": 1,
+      "codeLine": "const canvas = document.getElementById('preview');",
+      "action": "DOM Query",
+      "memoryDetail": "Resolves and caches reference to HTMLCanvasElement node in DOM tree."
+    },
+    {
+      "step": 2,
+      "codeLine": "const ctx = canvas.getContext('2d');",
+      "action": "Context Acquisition",
+      "memoryDetail": "Initializes 2D graphics state machine and binds to backing render buffer."
+    },
+    {
+      "step": 3,
+      "codeLine": "const gradient = ctx.createRadialGradient(150, 150, 0, 150, 150, 100);",
+      "action": "Gradient Allocation",
+      "memoryDetail": "Allocates CanvasGradient descriptor tracking focal point (150, 150, r0=0) and outer boundary (150, 150, r1=100)."
+    },
+    {
+      "step": 4,
+      "codeLine": "gradient.addColorStop(0, '#6366F1'); gradient.addColorStop(1, '#0F1115');",
+      "action": "Color Stop Registration",
+      "memoryDetail": "Appends normalized color tuples (0.0: indigo, 1.0: dark surface) to internal color-ramp buffer."
+    },
+    {
+      "step": 5,
+      "codeLine": "ctx.fillStyle = gradient; ctx.fillRect(0, 0, 300, 300);",
+      "action": "Fragment Rasterization",
+      "memoryDetail": "Binds active fill pointer to gradient; GPU fragment pipeline evaluates concentric color interpolation across 90,000 pixels."
+    }
+  ],
+  "pitfalls": [
+    {
+      "id": "negative-radius",
+      "title": "Negative Radii Cause Immediate DOMException",
+      "severity": "high",
+      "description": "Supplying negative values for either r0 or r1 causes createRadialGradient to immediately throw an IndexSizeError DOMException and terminates render execution.",
+      "badSnippet": "// Unclamped radius calculation crashing at runtime\nconst gradient = ctx.createRadialGradient(x, y, -10, x, y, 100);",
+      "goodSnippet": "// Always clamp radii to non-negative floats\nconst gradient = ctx.createRadialGradient(x, y, Math.max(0, r0), x, y, Math.max(0, r1));"
+    },
+    {
+      "id": "device-pixel-ratio",
+      "title": "Sub-pixel Blur on High-DPI Displays (Retina / Mobile)",
+      "severity": "medium",
+      "description": "Setting canvas dimensions without accounting for window.devicePixelRatio results in an under-sampled bitmap that stretches across physical device pixels, blurring fine gradient ramps.",
+      "badSnippet": "// Ignores display scaling; renders blurry on Retina screens\ncanvas.width = 300;\ncanvas.height = 300;",
+      "goodSnippet": "// Scales bitmap by devicePixelRatio while preserving layout dimensions\nconst dpr = window.devicePixelRatio || 1;\ncanvas.width = 300 * dpr;\ncanvas.height = 300 * dpr;\ncanvas.style.width = '300px';\ncanvas.style.height = '300px';\nctx.scale(dpr, dpr);"
+    }
+  ],
+  "seniorInterviewTip": "Senior graphics interviewers watch whether you understand that createRadialGradient creates two concentric circles with independent centers (x0, y0, r0) and (x1, y1, r1). Offsetting the centers simulates a 3D spherical light source, while keeping them concentric produces a flat 2D glow. Always mention GPU color-stop interpolation overhead when evaluating fill performance."
+}

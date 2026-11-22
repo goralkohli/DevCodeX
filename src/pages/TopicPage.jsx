@@ -3,8 +3,13 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { tracks } from '../data/tracks'
 import NotFoundPage from './NotFoundPage'
 import CodeSandbox from '../components/CodeSandbox'
+import radialAudit from '../data/audits/radial-coordinates.json'
 
 const VALID_TABS = ['concept', 'sandbox', 'audit']
+
+const auditsByTopic = {
+  'radial-coordinates': radialAudit,
+}
 
 export default function TopicPage() {
   const { trackId, topicId } = useParams()
@@ -21,6 +26,7 @@ export default function TopicPage() {
   }
 
   const lesson = topic.lesson
+  const audit = auditsByTopic[topicId]
 
   const tabParam = searchParams.get('tab')
   const activeTab = VALID_TABS.includes(tabParam) ? tabParam : 'concept'
@@ -81,7 +87,7 @@ export default function TopicPage() {
         </div>
       </div>
 
-      {/* Tab Content */}
+      {/* Concept Tab */}
       {activeTab === 'concept' && (
         <div className="p-6 bg-surface-raised border border-surface-overlay rounded-lg space-y-4">
           <h2 className="text-xl font-bold text-gray-100">
@@ -98,6 +104,7 @@ export default function TopicPage() {
         </div>
       )}
 
+      {/* Sandbox Tab */}
       {activeTab === 'sandbox' && (
         <div className="space-y-4">
           {lesson ? (
@@ -113,6 +120,7 @@ export default function TopicPage() {
               isOverlayVisible={showOverlay || isEditorHovered}
               onToggleOverlay={() => setShowOverlay((prev) => !prev)}
               onEditorHoverChange={setIsEditorHovered}
+              onLineHover={setIsEditorHovered}
               onPreviewRendered={(data) => {
                 setPreviewDimensions({
                   width: data.canvasWidth || 300,
@@ -128,20 +136,125 @@ export default function TopicPage() {
         </div>
       )}
 
+      {/* Audit Tab */}
       {activeTab === 'audit' && (
-        <div className="p-6 bg-surface-raised border border-surface-overlay rounded-lg space-y-4">
-          <h2 className="text-xl font-bold text-gray-100">Code Audit</h2>
-          <div className="space-y-3">
-            <div className="p-3 bg-surface-base rounded border border-surface-overlay text-sm text-gray-500">
-              Memory Trace
+        <div className="space-y-6">
+          {!audit ? (
+            <div className="p-8 text-center bg-surface-raised border border-surface-overlay rounded-lg text-sm text-gray-400">
+              Audit content currently being indexed by DeepSeek.
             </div>
-            <div className="p-3 bg-surface-base rounded border border-surface-overlay text-sm text-gray-500">
-              Complexity Analysis
-            </div>
-            <div className="p-3 bg-surface-base rounded border border-surface-overlay text-sm text-gray-500">
-              Common Pitfalls
-            </div>
-          </div>
+          ) : (
+            <>
+              {/* Header with Complexity Badges */}
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-overlay">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-100">Code Audit &amp; Systems Trace</h2>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Automated build-time analysis generated via DeepSeek
+                  </p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <span
+                    title={audit.complexity.explanation}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-surface-base border border-surface-overlay text-primary cursor-help"
+                  >
+                    Time {audit.complexity.time}
+                  </span>
+                  <span
+                    title={audit.complexity.explanation}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-surface-base border border-surface-overlay text-primary cursor-help"
+                  >
+                    Space {audit.complexity.space}
+                  </span>
+                </div>
+              </div>
+
+              {/* Execution Trace */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-gray-100">Execution Trace</h3>
+                <ol className="space-y-3">
+                  {audit.executionTrace.map((item) => (
+                    <li
+                      key={item.step}
+                      className="p-4 rounded-lg bg-surface-raised border border-surface-overlay space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-gray-400">
+                          Step {item.step}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-surface-base border border-surface-overlay text-primary">
+                          {item.action}
+                        </span>
+                      </div>
+                      <pre className="p-2.5 rounded bg-surface-base border border-surface-overlay text-xs font-mono text-gray-200 overflow-x-auto">
+                        <code>{item.codeLine}</code>
+                      </pre>
+                      <p className="text-xs text-gray-400 leading-relaxed">
+                        {item.memoryDetail}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              {/* Production Pitfalls */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-gray-100">Production Pitfalls</h3>
+                <div className="space-y-4">
+                  {audit.pitfalls.map((pitfall) => {
+                    const severityStyles = {
+                      high: 'bg-red-500/10 text-red-400 border border-red-500/30',
+                      medium: 'bg-amber-500/10 text-amber-400 border border-amber-500/30',
+                      low: 'bg-slate-500/10 text-slate-400 border border-slate-500/30',
+                    }[pitfall.severity] || 'bg-slate-500/10 text-slate-400 border border-slate-500/30'
+
+                    return (
+                      <div
+                        key={pitfall.id}
+                        className="p-5 rounded-lg bg-surface-raised border border-surface-overlay space-y-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <h4 className="text-base font-semibold text-gray-100">
+                            {pitfall.title}
+                          </h4>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${severityStyles}`}>
+                            {pitfall.severity}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-300 leading-relaxed">
+                          {pitfall.description}
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                          <div className="space-y-1.5">
+                            <span className="text-xs font-semibold text-red-400">❌ Bad</span>
+                            <pre className="p-3 rounded bg-surface-base border-l-2 border-red-500 text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre">
+                              <code>{pitfall.badSnippet}</code>
+                            </pre>
+                          </div>
+                          <div className="space-y-1.5">
+                            <span className="text-xs font-semibold text-green-400">✅ Good</span>
+                            <pre className="p-3 rounded bg-surface-base border-l-2 border-green-500 text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre">
+                              <code>{pitfall.goodSnippet}</code>
+                            </pre>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Senior Engineering Insight Callout */}
+              <div className="border-l-4 border-primary bg-surface-raised p-4 rounded-r-lg space-y-1">
+                <h4 className="text-sm font-bold text-gray-100 flex items-center gap-1.5">
+                  <span>💡</span> Senior Engineering Insight
+                </h4>
+                <p className="text-sm text-gray-300 leading-relaxed">
+                  {audit.seniorInterviewTip}
+                </p>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

@@ -1,12 +1,17 @@
+import { useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { tracks } from '../data/tracks'
 import NotFoundPage from './NotFoundPage'
+import CodeSandbox from '../components/CodeSandbox'
 
 const VALID_TABS = ['concept', 'sandbox', 'audit']
 
 export default function TopicPage() {
   const { trackId, topicId } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
+  const [showOverlay, setShowOverlay] = useState(false)
+  const [isEditorHovered, setIsEditorHovered] = useState(false)
+  const [previewDimensions, setPreviewDimensions] = useState({ width: 300, height: 300 })
 
   const track = tracks[trackId]
   const topic = track?.topics?.[topicId]
@@ -14,6 +19,8 @@ export default function TopicPage() {
   if (!track || !topic) {
     return <NotFoundPage />
   }
+
+  const lesson = topic.lesson
 
   const tabParam = searchParams.get('tab')
   const activeTab = VALID_TABS.includes(tabParam) ? tabParam : 'concept'
@@ -74,26 +81,50 @@ export default function TopicPage() {
         </div>
       </div>
 
-      {/* Tab Content Placeholders */}
+      {/* Tab Content */}
       {activeTab === 'concept' && (
-        <div className="p-6 bg-surface-raised border border-surface-overlay rounded-lg space-y-3">
-          <h2 className="text-xl font-bold text-gray-100">Concept Digest</h2>
-          <p className="text-sm text-gray-400">
-            Plain-English explanation will appear here.
+        <div className="p-6 bg-surface-raised border border-surface-overlay rounded-lg space-y-4">
+          <h2 className="text-xl font-bold text-gray-100">
+            {lesson?.concept?.heading || 'Concept Digest'}
+          </h2>
+          <p className="text-sm text-gray-300 leading-relaxed">
+            {lesson?.concept?.body || 'Plain-English explanation will appear here.'}
           </p>
+          {lesson?.concept?.analogy && (
+            <div className="p-4 rounded-md bg-surface-base border border-surface-overlay text-sm text-gray-400 italic">
+              💡 {lesson.concept.analogy}
+            </div>
+          )}
         </div>
       )}
 
       {activeTab === 'sandbox' && (
-        <div className="p-6 bg-surface-raised border border-surface-overlay rounded-lg">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[350px]">
-            <div className="p-4 rounded border border-dashed border-surface-overlay bg-surface-base flex items-center justify-center min-h-[160px]">
-              <span className="text-sm text-gray-500 font-mono">Code Editor</span>
+        <div className="space-y-4">
+          {lesson ? (
+            <CodeSandbox
+              files={{ '/index.js': lesson.starterCode }}
+              template="vanilla"
+              editable={true}
+              challengeBlankId="radius"
+              onRevealSolution={() => {}}
+              hoveredLineRange={lesson.challenge?.blankLineRange}
+              challengePrompt={lesson.challenge?.prompt}
+              solutionCode={lesson.solutionCode}
+              isOverlayVisible={showOverlay || isEditorHovered}
+              onToggleOverlay={() => setShowOverlay((prev) => !prev)}
+              onEditorHoverChange={setIsEditorHovered}
+              onPreviewRendered={(data) => {
+                setPreviewDimensions({
+                  width: data.canvasWidth || 300,
+                  height: data.canvasHeight || 300,
+                })
+              }}
+            />
+          ) : (
+            <div className="p-6 bg-surface-raised border border-surface-overlay rounded-lg text-sm text-gray-400">
+              No sandbox lesson configured for this topic.
             </div>
-            <div className="p-4 rounded border border-dashed border-surface-overlay bg-surface-base flex items-center justify-center min-h-[160px]">
-              <span className="text-sm text-gray-500 font-mono">Canvas Preview</span>
-            </div>
-          </div>
+          )}
         </div>
       )}
 

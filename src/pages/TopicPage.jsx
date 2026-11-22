@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useParams, useSearchParams, useLocation } from 'react-router-dom'
 import { tracks } from '../data/tracks'
 import NotFoundPage from './NotFoundPage'
 import CodeSandbox from '../components/CodeSandbox'
@@ -14,6 +14,7 @@ const auditsByTopic = {
 export default function TopicPage() {
   const { trackId, topicId } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
+  const location = useLocation()
   const [showOverlay, setShowOverlay] = useState(false)
   const [isEditorHovered, setIsEditorHovered] = useState(false)
   const [previewDimensions, setPreviewDimensions] = useState({ width: 300, height: 300 })
@@ -34,6 +35,19 @@ export default function TopicPage() {
   const handleTabChange = (newTab) => {
     setSearchParams({ tab: newTab })
   }
+
+  // Handle hash scrolling on mount, tab change, and hash change
+  useEffect(() => {
+    if (!window.location.hash) return
+    const id = window.location.hash.slice(1)
+    const raf = requestAnimationFrame(() => {
+      const el = document.getElementById(id)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' })
+      }
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [searchParams, location.hash, activeTab])
 
   return (
     <div className="py-8 space-y-6">
@@ -176,7 +190,8 @@ export default function TopicPage() {
                   {audit.executionTrace.map((item) => (
                     <li
                       key={item.step}
-                      className="p-4 rounded-lg bg-surface-raised border border-surface-overlay space-y-2"
+                      id={`step-${item.step}`}
+                      className="p-4 rounded-lg bg-surface-raised border border-surface-overlay space-y-2 scroll-mt-24"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-bold text-gray-400">
@@ -211,7 +226,8 @@ export default function TopicPage() {
                     return (
                       <div
                         key={pitfall.id}
-                        className="p-5 rounded-lg bg-surface-raised border border-surface-overlay space-y-3"
+                        id={`pitfall-${pitfall.id}`}
+                        className="p-5 rounded-lg bg-surface-raised border border-surface-overlay space-y-3 scroll-mt-24"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <h4 className="text-base font-semibold text-gray-100">
@@ -245,7 +261,10 @@ export default function TopicPage() {
               </div>
 
               {/* Senior Engineering Insight Callout */}
-              <div className="border-l-4 border-primary bg-surface-raised p-4 rounded-r-lg space-y-1">
+              <div
+                id="senior-insight"
+                className="border-l-4 border-primary bg-surface-raised p-4 rounded-r-lg space-y-1 scroll-mt-24"
+              >
                 <h4 className="text-sm font-bold text-gray-100 flex items-center gap-1.5">
                   <span>💡</span> Senior Engineering Insight
                 </h4>

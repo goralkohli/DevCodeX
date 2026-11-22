@@ -36,6 +36,16 @@ npm run generate:audit
 - `/clinic` — AI Code Clinic page (`CodeClinicPage`)
 - `*` — Not Found page (`NotFoundPage`)
 
+## Quick Recall (Cmd+K)
+
+DevCodex features a global, unbundled quick-recall palette built with **cmdk** that functions as a "second brain" for developers.
+
+### Key Capabilities:
+- **Shortcut & Trigger**: Accessible from anywhere via `⌘K` (macOS) or `Ctrl+K` (Windows/Linux), as well as a dedicated `<button>` trigger in the top navbar.
+- **Unified Search Index**: Derived as a pure function from tracks and audit data (`src/data/searchIndex.js`). It indexes topics, interactive sandboxes, execution trace steps, production pitfalls, and senior interview insights.
+- **Deep Fragment Anchors**: Selecting an item from the palette immediately navigates to the exact tab and smoothly scrolls to the target anchor (`#step-X`, `#pitfall-Y`, `#senior-insight`) with top navbar offset handling (`scroll-mt-24`).
+- **Cross-Tab Recall**: Handles cross-tab state switching (e.g., navigating from `?tab=concept` directly into a specific pitfall card in `?tab=audit`) using requestAnimationFrame deferrals to wait for the target tab to mount.
+
 ## Sandbox Architecture
 
 DevCodex uses the **CodeMirror 6 fallback** (`@uiw/react-codemirror` + `@codemirror/lang-javascript`) paired with a local `<iframe>` preview generated via Blob URLs.
@@ -71,12 +81,14 @@ devcodex/
 │   ├── components/
 │   │   ├── AppLayout.jsx
 │   │   ├── CodeSandbox.jsx
+│   │   ├── CommandPalette.jsx
 │   │   ├── Footer.jsx
 │   │   └── Navbar.jsx
 │   ├── data/
 │   │   ├── audits/
 │   │   │   ├── radial-coordinates.json
 │   │   │   └── schema.json
+│   │   ├── searchIndex.js
 │   │   └── tracks.js
 │   ├── pages/
 │   │   ├── CodeClinicPage.jsx

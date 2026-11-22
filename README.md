@@ -22,6 +22,14 @@ npm run dev
 npm run build
 ```
 
+## Routes
+
+- `/` — Home page (`HomePage`)
+- `/tracks` — Tracks catalog page (`TracksPage`)
+- `/tracks/:trackId/:topicId` — Topic study page with tabbed views (`TopicPage`)
+- `/clinic` — AI Code Clinic page (`CodeClinicPage`)
+- `*` — Not Found page (`NotFoundPage`)
+
 ## Project Structure
 
 ```
@@ -31,11 +39,17 @@ devcodex/
 │   └── icons.svg
 ├── src/
 │   ├── components/
+│   │   ├── AppLayout.jsx
 │   │   ├── Footer.jsx
-│   │   ├── Layout.jsx
 │   │   └── Navbar.jsx
+│   ├── data/
+│   │   └── tracks.js
 │   ├── pages/
-│   │   └── Home.jsx
+│   │   ├── CodeClinicPage.jsx
+│   │   ├── Home.jsx
+│   │   ├── NotFoundPage.jsx
+│   │   ├── TopicPage.jsx
+│   │   └── TracksPage.jsx
 │   ├── styles/
 │   │   └── index.css
 │   ├── App.jsx

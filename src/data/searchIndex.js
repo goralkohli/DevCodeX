@@ -1,8 +1,10 @@
 import { tracks } from './tracks.js'
 import radialAudit from './audits/radial-coordinates.json' with { type: 'json' }
+import starAudit from './audits/parametric-star.json' with { type: 'json' }
 
 const auditsByTopic = {
   'radial-coordinates': radialAudit,
+  'parametric-star': starAudit,
 }
 
 const truncate = (str, maxLen = 60) => {
@@ -32,7 +34,7 @@ export function buildSearchIndex() {
           category: 'Sandboxes',
           title: `Interactive Sandbox: ${topic.lesson.concept.heading}`,
           subtitle: topic.title,
-          keywords: ['sandbox', 'editor', 'live', topicId, 'canvas', 'interactive'],
+          keywords: ['sandbox', 'editor', 'live', topicId, 'canvas', 'interactive', topic.title.toLowerCase()],
           path: `/tracks/${trackId}/${topicId}?tab=sandbox`,
         })
       }
@@ -54,6 +56,7 @@ export function buildSearchIndex() {
                 'trace',
                 'execution',
                 `step ${step.step}`,
+                topicId,
               ],
               path: `/tracks/${trackId}/${topicId}?tab=audit#step-${step.step}`,
             })
@@ -74,6 +77,8 @@ export function buildSearchIndex() {
                 'pitfall',
                 'antipattern',
                 pitfall.id.toLowerCase(),
+                topicId,
+                'radian',
                 'devicepixelratio',
                 'blur',
                 'negative',
@@ -89,9 +94,9 @@ export function buildSearchIndex() {
           items.push({
             id: `${trackId}-${topicId}-insight`,
             category: 'Interview Insights',
-            title: 'Senior Insight: Interview Tip',
+            title: `Senior Insight: ${topic.title}`,
             subtitle: truncate(audit.seniorInterviewTip),
-            keywords: ['senior', 'insight', 'interview', 'production'],
+            keywords: ['senior', 'insight', 'interview', 'production', topicId],
             path: `/tracks/${trackId}/${topicId}?tab=audit#senior-insight`,
           })
         }

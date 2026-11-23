@@ -54,6 +54,92 @@ ctx.fillRect(0, 0, 300, 300);`,
             hint: 'The inner radius is the empty hole at the center. The outer radius is where the color stops.'
           }
         }
+      },
+      'parametric-star': {
+        title: 'Parametric Star Drawing',
+        lesson: {
+          concept: {
+            heading: 'Why parametric stars?',
+            body: 'A star alternates vertices between an outer radius and an inner radius as it sweeps around a circle. Canvas has no "drawStar" method — we compute every vertex ourselves using sine and cosine.',
+            analogy: "Imagine plotting points on two concentric circles — every other point lands on the outer ring, creating the star's sharp tips."
+          },
+          starterCode: `// 🎯 CHALLENGE: Fill in the angle step for a 5-point star.
+// A full circle is 2 * Math.PI radians.
+// You need 10 total vertices (5 outer + 5 inner), evenly spaced.
+
+const canvas = document.getElementById('preview');
+const ctx = canvas.getContext('2d');
+canvas.width = 300;
+canvas.height = 300;
+
+const cx = 150;
+const cy = 150;
+const outerRadius = 80;
+const innerRadius = 35;
+const points = 5;
+
+// TODO: calculate the angle step.
+// Hint: 10 vertices total, so the step is (2 * Math.PI) / 10.
+const angleStep = /* YOUR_CODE_HERE */;
+
+ctx.fillStyle = '#181B22';
+ctx.fillRect(0, 0, 300, 300);
+
+ctx.beginPath();
+for (let i = 0; i < points * 2; i++) {
+  const r = (i % 2 === 0) ? outerRadius : innerRadius;
+  const angle = i * angleStep - Math.PI / 2;
+  const x = cx + r * Math.cos(angle);
+  const y = cy + r * Math.sin(angle);
+  if (i === 0) ctx.moveTo(x, y);
+  else ctx.lineTo(x, y);
+}
+ctx.closePath();
+
+ctx.fillStyle = '#6366F1';
+ctx.fill();
+ctx.strokeStyle = '#818CF8';
+ctx.lineWidth = 2;
+ctx.stroke();`,
+          solutionCode: `// Canvas parametric star — solution
+const canvas = document.getElementById('preview');
+const ctx = canvas.getContext('2d');
+canvas.width = 300;
+canvas.height = 300;
+
+const cx = 150;
+const cy = 150;
+const outerRadius = 80;
+const innerRadius = 35;
+const points = 5;
+
+const angleStep = (Math.PI * 2) / (points * 2);
+
+ctx.fillStyle = '#181B22';
+ctx.fillRect(0, 0, 300, 300);
+
+ctx.beginPath();
+for (let i = 0; i < points * 2; i++) {
+  const r = (i % 2 === 0) ? outerRadius : innerRadius;
+  const angle = i * angleStep - Math.PI / 2;
+  const x = cx + r * Math.cos(angle);
+  const y = cy + r * Math.sin(angle);
+  if (i === 0) ctx.moveTo(x, y);
+  else ctx.lineTo(x, y);
+}
+ctx.closePath();
+
+ctx.fillStyle = '#6366F1';
+ctx.fill();
+ctx.strokeStyle = '#818CF8';
+ctx.lineWidth = 2;
+ctx.stroke();`,
+          challenge: {
+            prompt: 'Fill in the angle step. A 5-point star needs 10 evenly spaced vertices.',
+            blankLineRange: [17, 17],
+            hint: 'A full circle is 2 * Math.PI. You need 10 equal steps around it.'
+          }
+        }
       }
     }
   }

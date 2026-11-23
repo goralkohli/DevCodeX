@@ -25,8 +25,25 @@ npm run build
 ### Regenerate Audits (Build-Time Only)
 
 ```bash
+# Regenerate all lessons
 npm run generate:audit
+
+# Regenerate a single topic
+npm run generate:audit -- radial-coordinates
+npm run generate:audit -- parametric-star
 ```
+
+## Content
+
+DevCodex currently ships with two complete Canvas engineering modules under the **Visual Computing & Canvas** track:
+1. **Radial Coordinate Math** (`radial-coordinates`): Concentric focal coordinates, gradients, and sub-pixel high-DPI scaling.
+2. **Parametric Star Drawing** (`parametric-star`): Trigonometric polar-to-Cartesian vertex projection, alternating concentric radii, and closed subpaths.
+
+### Scaling Topics
+The platform is 100% data-driven. Adding a new topic requires only:
+- Extending `src/data/tracks.js` with the topic metadata and `lesson` object.
+- Running `npm run generate:audit -- <topicId>` (which queries DeepSeek when `DEEPSEEK_API_KEY` is present, or falls back to `scripts/seeds/<topicId>.seed.json`).
+- The search index, Cmd+K palette, navigation, and audit views automatically discover the topic.
 
 ## Routes
 
@@ -60,7 +77,7 @@ DevCodex uses the **CodeMirror 6 fallback** (`@uiw/react-codemirror` + `@codemir
 DevCodex treats AI as a **build-time content production tool, NOT a runtime dependency**. The web client makes zero network calls to AI providers and requires no API keys at runtime.
 
 ### How it Works:
-- **Zero-Key Fresh-Clone Experience**: Pre-generated, schema-valid audits (`src/data/audits/radial-coordinates.json`) and committed seeds (`scripts/seeds/radial-coordinates.seed.json`) are committed to the repository. The app runs completely offline out-of-the-box.
+- **Zero-Key Fresh-Clone Experience**: Pre-generated, schema-valid audits (`src/data/audits/radial-coordinates.json`, `src/data/audits/parametric-star.json`) and committed seeds (`scripts/seeds/radial-coordinates.seed.json`, `scripts/seeds/parametric-star.seed.json`) are committed to the repository. The app runs completely offline out-of-the-box.
 - **Manual Regeneration (`npm run generate:audit`)**:
   - If `DEEPSEEK_API_KEY` is absent and the audit file exists: preserves the existing JSON (`[INFO]`).
   - If `DEEPSEEK_API_KEY` is absent and no audit exists: copies the committed seed (`[WARN]`).
@@ -75,6 +92,7 @@ devcodex/
 │   └── icons.svg
 ├── scripts/
 │   ├── seeds/
+│   │   ├── parametric-star.seed.json
 │   │   └── radial-coordinates.seed.json
 │   └── generate-audit.mjs
 ├── src/
@@ -86,6 +104,7 @@ devcodex/
 │   │   └── Navbar.jsx
 │   ├── data/
 │   │   ├── audits/
+│   │   │   ├── parametric-star.json
 │   │   │   ├── radial-coordinates.json
 │   │   │   └── schema.json
 │   │   ├── searchIndex.js

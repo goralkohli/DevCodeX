@@ -1,0 +1,62 @@
+{
+  "topicId": "parametric-star",
+  "topicTitle": "Parametric Star Drawing",
+  "generatedAt": "2026-11-23T20:30:00.000Z",
+  "engine": "deepseek-chat",
+  "complexity": {
+    "time": "O(N)",
+    "space": "O(1)",
+    "explanation": "One loop over N vertices with constant per-vertex work. The Canvas path is stored in a fixed-size buffer; no per-vertex allocations."
+  },
+  "executionTrace": [
+    {
+      "step": 1,
+      "codeLine": "const cx = 150; const cy = 150; const outerRadius = 80; const innerRadius = 35;",
+      "action": "Geometry Initialization",
+      "memoryDetail": "Allocates scalar origin offsets and concentric polar radii registers in call stack."
+    },
+    {
+      "step": 2,
+      "codeLine": "const angle = i * angleStep - Math.PI / 2;",
+      "action": "Angular Step Progression",
+      "memoryDetail": "Calculates normalized polar angle offset by -90deg so initial vertex points directly upward."
+    },
+    {
+      "step": 3,
+      "codeLine": "const x = cx + r * Math.cos(angle); const y = cy + r * Math.sin(angle);",
+      "action": "Polar to Cartesian Projection",
+      "memoryDetail": "Evaluates transcendental trigonometric functions to project 2D Cartesian vertex coordinates."
+    },
+    {
+      "step": 4,
+      "codeLine": "ctx.beginPath(); /* ... lineTo */ ctx.closePath();",
+      "action": "Subpath Construction",
+      "memoryDetail": "Appends 10 linear vector segments to 2D path buffer, linking outer and inner vertices."
+    },
+    {
+      "step": 5,
+      "codeLine": "ctx.fill(); ctx.stroke();",
+      "action": "Polygon Rasterization",
+      "memoryDetail": "Applies non-zero winding rule fill and rasterizes 2px border strokes to frame buffer."
+    }
+  ],
+  "pitfalls": [
+    {
+      "id": "polar-radian-inversion",
+      "title": "Passing degrees to Math.sin / Math.cos",
+      "severity": "high",
+      "description": "Math.sin and Math.cos strictly accept radians. Supplying degrees (e.g. 90 instead of Math.PI / 2) silently distorts angular spacing, producing a mangled or broken shape.",
+      "badSnippet": "// Passing raw degrees silently produces incorrect geometry\nconst angle = i * 45; // 45 degrees, wrong",
+      "goodSnippet": "// Always convert angles to radians (radians = degrees * Math.PI / 180)\nconst angle = i * (Math.PI / 4); // radians"
+    },
+    {
+      "id": "missing-close-path",
+      "title": "Omitting ctx.closePath()",
+      "severity": "medium",
+      "description": "Failing to invoke closePath() before stroke() leaves the path open between the final vertex and the initial vertex, creating a visible seam in the stroke outline.",
+      "badSnippet": "ctx.beginPath();\n// ... lineTo vertex loop ...\nctx.stroke(); // gap between last and first vertex",
+      "goodSnippet": "ctx.beginPath();\n// ... lineTo vertex loop ...\nctx.closePath();\nctx.stroke();"
+    }
+  ],
+  "seniorInterviewTip": "For 60fps animations, precompute sin/cos values in a lookup table or move vertex computation into a vertex shader — Math.sin/Math.cos are transcendental and expensive in hot loops."
+}

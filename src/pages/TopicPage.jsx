@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useSearchParams, useLocation } from 'react-router-dom'
-import { tracks } from '../data/tracks'
+import { tracks } from '../data/tracks.js'
 import NotFoundPage from './NotFoundPage'
 import CodeSandbox from '../components/CodeSandbox'
 import radialAudit from '../data/audits/radial-coordinates.json'
+import starAudit from '../data/audits/parametric-star.json'
 
 const VALID_TABS = ['concept', 'sandbox', 'audit']
 
 const auditsByTopic = {
   'radial-coordinates': radialAudit,
+  'parametric-star': starAudit,
 }
 
 export default function TopicPage() {
@@ -123,10 +125,11 @@ export default function TopicPage() {
         <div className="space-y-4">
           {lesson ? (
             <CodeSandbox
+              key={topicId}
               files={{ '/index.js': lesson.starterCode }}
               template="vanilla"
               editable={true}
-              challengeBlankId="radius"
+              challengeBlankId={topicId}
               onRevealSolution={() => {}}
               hoveredLineRange={lesson.challenge?.blankLineRange}
               challengePrompt={lesson.challenge?.prompt}
@@ -141,6 +144,58 @@ export default function TopicPage() {
                   height: data.canvasHeight || 300,
                 })
               }}
+              previewOverlay={
+                topicId === 'parametric-star' ? (
+                  <svg viewBox="0 0 300 300" className="w-[300px] h-[300px] pointer-events-none">
+                    <circle
+                      cx="150"
+                      cy="150"
+                      r="35"
+                      className="stroke-primary fill-primary/10"
+                      strokeWidth="1.5"
+                      strokeDasharray="3 3"
+                    />
+                    <text x="155" y="110" className="fill-primary text-[10px] font-mono font-medium">
+                      r_inner = 35
+                    </text>
+                    <circle
+                      cx="150"
+                      cy="150"
+                      r="80"
+                      className="stroke-primary fill-primary/5"
+                      strokeWidth="2"
+                      strokeDasharray="4 4"
+                    />
+                    <text x="155" y="65" className="fill-primary text-[10px] font-mono font-medium">
+                      r_outer = 80
+                    </text>
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 300 300" className="w-[300px] h-[300px] pointer-events-none">
+                    <circle
+                      cx="150"
+                      cy="150"
+                      r="3"
+                      className="stroke-primary fill-primary"
+                      strokeWidth="1"
+                    />
+                    <text x="156" y="146" className="fill-primary text-[10px] font-mono font-medium">
+                      r₀ = 0
+                    </text>
+                    <circle
+                      cx="150"
+                      cy="150"
+                      r="100"
+                      className="stroke-primary fill-primary/10"
+                      strokeWidth="2"
+                      strokeDasharray="4 4"
+                    />
+                    <text x="155" y="46" className="fill-primary text-[10px] font-mono font-medium">
+                      r₁ = 100
+                    </text>
+                  </svg>
+                )
+              }
             />
           ) : (
             <div className="p-6 bg-surface-raised border border-surface-overlay rounded-lg text-sm text-gray-400">

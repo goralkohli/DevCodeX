@@ -1,0 +1,62 @@
+{
+  "topicId": "stroke-animation",
+  "topicTitle": "Procedural Stroke Animation",
+  "generatedAt": "2026-11-24T20:00:00.000Z",
+  "engine": "deepseek-chat",
+  "complexity": {
+    "time": "O(1) per frame",
+    "space": "O(1)",
+    "explanation": "Each tick inside the requestAnimationFrame render loop executes in constant O(1) time and space, updating the lineDashOffset scalar property and clearing the 300x300 pixel buffer."
+  },
+  "executionTrace": [
+    {
+      "step": 1,
+      "codeLine": "ctx.fillRect(0, 0, 300, 300);",
+      "action": "Framebuffer Clear",
+      "memoryDetail": "Overwrites previous raster buffer with opaque surface color #181B22 to prevent ghosting artifacts."
+    },
+    {
+      "step": 2,
+      "codeLine": "ctx.setLineDash([totalLength, totalLength]);",
+      "action": "Dash Array Allocation",
+      "memoryDetail": "Registers a two-element dash pattern array [500, 500] representing drawn segment and gap length."
+    },
+    {
+      "step": 3,
+      "codeLine": "ctx.lineDashOffset = offset;",
+      "action": "Phase Offset Modulation",
+      "memoryDetail": "Updates phase shift scalar offset, progressively revealing the drawn stroke segment as offset decrements to 0."
+    },
+    {
+      "step": 4,
+      "codeLine": "ctx.stroke();",
+      "action": "Fragment Shading",
+      "memoryDetail": "Rasterizes circular arc pixels intersecting the active visible window of the dash pattern."
+    },
+    {
+      "step": 5,
+      "codeLine": "requestAnimationFrame(draw);",
+      "action": "VSync Queue Registration",
+      "memoryDetail": "Schedules subsequent iteration callback on the browser compositor queue synchronized with display refresh."
+    }
+  ],
+  "pitfalls": [
+    {
+      "id": "raf-memory-leak",
+      "title": "Unbounded requestAnimationFrame Loop Leaks on Unmount",
+      "severity": "high",
+      "description": "Failing to cancel the active animation frame callback when components unmount causes continuous CPU loop execution, battery drain, and memory leaks in SPA navigation.",
+      "badSnippet": "// Fires indefinitely in background even after navigating away\nfunction draw() {\n  offset = Math.max(0, offset - speed);\n  requestAnimationFrame(draw);\n}\ndraw();",
+      "goodSnippet": "// Cache rAF integer handle and cancel on unmount / teardown\nlet animId;\nfunction draw() {\n  offset = Math.max(0, offset - speed);\n  animId = requestAnimationFrame(draw);\n}\ndraw();\n// Cleanup: cancelAnimationFrame(animId);"
+    },
+    {
+      "id": "missing-canvas-clear",
+      "title": "Missing Canvas Frame Clearing Causes Stroke Smearing",
+      "severity": "medium",
+      "description": "Omitting clearRect or fillRect on each animation tick causes newly stroked segments to draw over stale pixel data, smearing and dirtying the display surface.",
+      "badSnippet": "// Does not clear canvas; frames accumulate over time\nfunction draw() {\n  ctx.stroke();\n  requestAnimationFrame(draw);\n}",
+      "goodSnippet": "// Always clear or fill the full canvas bounds before each frame draw\nfunction draw() {\n  ctx.fillRect(0, 0, width, height);\n  ctx.stroke();\n  requestAnimationFrame(draw);\n}"
+    }
+  ],
+  "seniorInterviewTip": "Production pipelines offload stroke dash to GPU fragment shaders using normalized arc length instead of CPU-driven canvas re-strokes. When SVG or Canvas path animation is required on the web, CSS stroke-dashoffset acceleration or WebGL instancing avoids main-thread JS overhead."
+}

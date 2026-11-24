@@ -1,0 +1,62 @@
+{
+  "topicId": "coordinate-transforms",
+  "topicTitle": "Matrix Transformations",
+  "generatedAt": "2026-11-24T20:00:00.000Z",
+  "engine": "deepseek-chat",
+  "complexity": {
+    "time": "O(1)",
+    "space": "O(1)",
+    "explanation": "Matrix transformations manipulate the 3x3 affine transformation matrix in 2D graphics state memory. Pushing state, translating, rotating, and drawing primitive bounds operates in constant O(1) time with minimal stack allocation."
+  },
+  "executionTrace": [
+    {
+      "step": 1,
+      "codeLine": "ctx.save();",
+      "action": "Push State Stack",
+      "memoryDetail": "Pushes a copy of the current 3x3 Current Transformation Matrix (CTM) and clipping path onto the graphics state stack."
+    },
+    {
+      "step": 2,
+      "codeLine": "ctx.translate(cx, cy);",
+      "action": "Origin Translation",
+      "memoryDetail": "Pre-multiplies CTM by translation matrix [[1, 0, cx], [0, 1, cy], [0, 0, 1]], shifting local (0, 0) to canvas center (150, 150)."
+    },
+    {
+      "step": 3,
+      "codeLine": "ctx.rotate((angleDegrees * Math.PI) / 180);",
+      "action": "Matrix Rotation",
+      "memoryDetail": "Pre-multiplies CTM by 45° rotation matrix [[cos θ, -sin θ, 0], [sin θ, cos θ, 0], [0, 0, 1]], establishing a rotated local coordinate space."
+    },
+    {
+      "step": 4,
+      "codeLine": "ctx.fillRect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight);",
+      "action": "Primitive Rasterization",
+      "memoryDetail": "Rasterizes an 80x80 rectangle symmetrically centered around local origin (-40, -40 to +40, +40), creating a centered rotation."
+    },
+    {
+      "step": 5,
+      "codeLine": "ctx.restore();",
+      "action": "Pop State Stack",
+      "memoryDetail": "Pops and restores the original transformation matrix, isolating transforms from subsequent draw passes."
+    }
+  ],
+  "pitfalls": [
+    {
+      "id": "missing-save-restore",
+      "title": "Missing ctx.save / ctx.restore Matrix Leaks",
+      "severity": "high",
+      "description": "Failing to bracket canvas coordinate mutations with save() and restore() causes transformations to accumulate across animation frames or bleed into subsequent rendering passes.",
+      "badSnippet": "// Transforms accumulate every frame, spinning objects wildly offscreen\nctx.translate(cx, cy);\nctx.rotate(angle);\nctx.fillRect(-40, -40, 80, 80);",
+      "goodSnippet": "// Always isolate local transforms in a save/restore bracket\nctx.save();\nctx.translate(cx, cy);\nctx.rotate(angle);\nctx.fillRect(-40, -40, 80, 80);\nctx.restore();"
+    },
+    {
+      "id": "rotate-before-translate",
+      "title": "Rotating Before Translating Sweeps Local Axes",
+      "severity": "high",
+      "description": "Matrix multiplications are non-commutative (A · B ≠ B · A). Calling rotate() before translate() rotates the axis vectors first, causing translate() to advance along angled directions and swing the shape around world (0, 0).",
+      "badSnippet": "// Swings the shape in an orbital arc around the canvas top-left corner\nctx.rotate(angle);\nctx.translate(cx, cy);",
+      "goodSnippet": "// Move the origin to the target pivot point first, then rotate in place\nctx.translate(cx, cy);\nctx.rotate(angle);"
+    }
+  ],
+  "seniorInterviewTip": "Move the paper under the pen, not the pen across the paper. In Canvas and GPU rendering, coordinate transforms do not move shapes; they transform the coordinate space itself. Senior engineers always translate the origin to the object's anchor or center of mass before rotating or scaling."
+}

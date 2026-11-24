@@ -1,0 +1,56 @@
+{
+  "topicId": "bezier-curves",
+  "topicTitle": "Cubic Bézier Splines",
+  "generatedAt": "2026-11-24T20:00:00.000Z",
+  "engine": "deepseek-chat",
+  "complexity": {
+    "time": "O(1)",
+    "space": "O(1)",
+    "explanation": "Evaluating and rasterizing a single cubic Bézier spline segment requires computing cubic Bernstein polynomials and De Casteljau subdivision over bounded sub-pixel line segments, running in constant O(1) time and memory."
+  },
+  "executionTrace": [
+    {
+      "step": 1,
+      "codeLine": "ctx.moveTo(startX, startY);",
+      "action": "Subpath Anchor",
+      "memoryDetail": "Begins a new subpath anchored at initial endpoint P₀ (50, 180)."
+    },
+    {
+      "step": 2,
+      "codeLine": "ctx.bezierCurveTo(100, cpY, 200, cpY, endX, endY);",
+      "action": "Bernstein Polynomial Evaluation",
+      "memoryDetail": "Evaluates cubic spline equation B(t) between P₀ and P₁ with control anchors CP₁ (100, 110) and CP₂ (200, 110)."
+    },
+    {
+      "step": 3,
+      "codeLine": "ctx.strokeStyle = '#818CF8'; ctx.lineWidth = 4;",
+      "action": "Raster State Binding",
+      "memoryDetail": "Configures 4px stroke width and color token in active 2D context."
+    },
+    {
+      "step": 4,
+      "codeLine": "ctx.stroke();",
+      "action": "Subdivision & Blit",
+      "memoryDetail": "Tessellates the mathematical curve into linear micro-segments and blits anti-aliased fragments to the framebuffer."
+    }
+  ],
+  "pitfalls": [
+    {
+      "id": "inverted-y-axis-curve",
+      "title": "Inverting the Canvas Y-Axis Direction",
+      "severity": "high",
+      "description": "Unlike standard Cartesian graphs where Y points upward, Canvas screen coordinates have Y increasing downward. Adding height drags control points down, producing a sagging valley instead of an arched wave.",
+      "badSnippet": "// Adding height pushes control points downward into a sag\nconst cpY = startY + peakHeight;",
+      "goodSnippet": "// Subtracting height pulls control points upward toward top of canvas\nconst cpY = startY - peakHeight;"
+    },
+    {
+      "id": "discontinuous-spline-handles",
+      "title": "Discontinuous Spline Tangents at Joint Boundaries",
+      "severity": "medium",
+      "description": "When connecting multiple Bézier segments, placing control handles at mismatched angles creates non-differentiable sharp cusps (lacking C¹ continuity) at joint endpoints.",
+      "badSnippet": "// Independent angles create a visual crease at (midX, midY)\nctx.bezierCurveTo(cp1X, cp1Y, cp2X, cp2Y, midX, midY);\nctx.bezierCurveTo(randX, randY, cp4X, cp4Y, endX, endY);",
+      "goodSnippet": "// Ensure incoming CP₂, anchor P, and outgoing CP₁ are strictly collinear\nctx.bezierCurveTo(cp1X, cp1Y, midX - dx, midY - dy, midX, midY);\nctx.bezierCurveTo(midX + dx, midY + dy, cp4X, cp4Y, endX, endY);"
+    }
+  ],
+  "seniorInterviewTip": "For smooth multi-segment curves, P_end, CP₂, and the next CP₁ must be collinear to satisfy C¹ continuity. If the tangent lengths are also equal, the curve satisfies C² continuity (curvature continuity), which is required in high-end vector engines and automotive CAD rendering."
+}

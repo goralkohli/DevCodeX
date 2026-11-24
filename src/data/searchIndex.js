@@ -1,10 +1,16 @@
 import { tracks } from './tracks.js'
 import radialAudit from './audits/radial-coordinates.json' with { type: 'json' }
 import starAudit from './audits/parametric-star.json' with { type: 'json' }
+import transformsAudit from './audits/coordinate-transforms.json' with { type: 'json' }
+import bezierAudit from './audits/bezier-curves.json' with { type: 'json' }
+import strokeAudit from './audits/stroke-animation.json' with { type: 'json' }
 
 const auditsByTopic = {
   'radial-coordinates': radialAudit,
   'parametric-star': starAudit,
+  'coordinate-transforms': transformsAudit,
+  'bezier-curves': bezierAudit,
+  'stroke-animation': strokeAudit,
 }
 
 const truncate = (str, maxLen = 60) => {
@@ -17,13 +23,22 @@ export function buildSearchIndex() {
 
   for (const [trackId, track] of Object.entries(tracks)) {
     for (const [topicId, topic] of Object.entries(track.topics || {})) {
+      const topicTags = topic.tags || topic.lesson?.tags || []
+
       // 1. Topic Concept item
       items.push({
         id: `${trackId}-${topicId}-concept`,
         category: 'Topics',
         title: topic.title,
         subtitle: track.title,
-        keywords: [topicId, trackId, 'concept', 'digest', topic.title.toLowerCase()],
+        keywords: [
+          topicId,
+          trackId,
+          'concept',
+          'digest',
+          topic.title.toLowerCase(),
+          ...topicTags.map((t) => t.toLowerCase()),
+        ],
         path: `/tracks/${trackId}/${topicId}?tab=concept`,
       })
 
@@ -34,7 +49,16 @@ export function buildSearchIndex() {
           category: 'Sandboxes',
           title: `Interactive Sandbox: ${topic.lesson.concept.heading}`,
           subtitle: topic.title,
-          keywords: ['sandbox', 'editor', 'live', topicId, 'canvas', 'interactive', topic.title.toLowerCase()],
+          keywords: [
+            'sandbox',
+            'editor',
+            'live',
+            topicId,
+            'canvas',
+            'interactive',
+            topic.title.toLowerCase(),
+            ...topicTags.map((t) => t.toLowerCase()),
+          ],
           path: `/tracks/${trackId}/${topicId}?tab=sandbox`,
         })
       }
@@ -77,12 +101,10 @@ export function buildSearchIndex() {
                 'pitfall',
                 'antipattern',
                 pitfall.id.toLowerCase(),
+                pitfall.id.replace(/-/g, '').toLowerCase(),
                 topicId,
-                'radian',
-                'devicepixelratio',
-                'blur',
-                'negative',
-                'radius',
+                topicId.replace(/-/g, '').toLowerCase(),
+                ...(pitfall.id.split('-')),
               ],
               path: `/tracks/${trackId}/${topicId}?tab=audit#pitfall-${pitfall.id}`,
             })
@@ -96,7 +118,7 @@ export function buildSearchIndex() {
             category: 'Interview Insights',
             title: `Senior Insight: ${topic.title}`,
             subtitle: truncate(audit.seniorInterviewTip),
-            keywords: ['senior', 'insight', 'interview', 'production', topicId],
+            keywords: ['senior', 'insight', 'interview', 'production', topicId, topic.title.toLowerCase()],
             path: `/tracks/${trackId}/${topicId}?tab=audit#senior-insight`,
           })
         }

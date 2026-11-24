@@ -149,6 +149,42 @@ const CodeSandbox = forwardRef(function CodeSandbox(
   <canvas id="preview" width="300" height="300"></canvas>
   <div id="error-overlay"></div>
   <script>
+    // Alias 'canvas' to 'preview' so starter codes using either ID resolve cleanly
+    var _origGetElementById = document.getElementById.bind(document);
+    document.getElementById = function(id) {
+      if (id === 'canvas' || id === 'preview') {
+        return _origGetElementById('preview') || _origGetElementById('canvas');
+      }
+      return _origGetElementById(id);
+    };
+
+    /**
+     * POSTMESSAGE CONTRACT FOR ANIMATION-PROGRESS
+     * -------------------------------------------------------------
+     * Message shape: { type: 'animation-progress', offset: number, totalLength: number }
+     * Throttle: posts on every 2nd animation frame (~30fps at 60Hz display refresh)
+     * Hook point: wrapped around CanvasRenderingContext2D.prototype.stroke
+     * Lifecycle: dispatched from iframe to window.parent; host unsubscribes on unmount
+     */
+    var frameCount = 0;
+    var origStroke = CanvasRenderingContext2D.prototype.stroke;
+    CanvasRenderingContext2D.prototype.stroke = function() {
+      var res = origStroke.apply(this, arguments);
+      if (typeof this.lineDashOffset === 'number' && window.parent) {
+        frameCount++;
+        if (frameCount % 2 === 0) {
+          var dash = this.getLineDash ? this.getLineDash() : [];
+          var total = (dash && dash[0]) ? dash[0] : 500;
+          window.parent.postMessage({
+            type: 'animation-progress',
+            offset: this.lineDashOffset,
+            totalLength: total
+          }, '*');
+        }
+      }
+      return res;
+    };
+
     function showError(err) {
       var overlay = document.getElementById('error-overlay');
       if (overlay) {
@@ -274,7 +310,7 @@ const CodeSandbox = forwardRef(function CodeSandbox(
                     : 'bg-surface-raised text-gray-400 border-surface-overlay hover:text-gray-200'
                 }`}
               >
-                {isOverlayVisible ? 'Hide radii' : 'Show radii'}
+                {isOverlayVisible ? 'Hide guide' : 'Show guide'}
               </button>
             )}
           </div>

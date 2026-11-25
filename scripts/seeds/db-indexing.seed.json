@@ -1,0 +1,50 @@
+{
+  "topicId": "db-indexing",
+  "topicTitle": "Database Indexing & The 10,000-Row Scan",
+  "generatedAt": "2026-11-25T20:00:00.000Z",
+  "engine": "deepseek-chat",
+  "complexity": {
+    "time": "O(log n) with index, O(n) without",
+    "space": "O(n) index storage",
+    "explanation": "Without an index, the database engine must evaluate the predicate across all n table rows via an O(n) sequential scan. A B-Tree index organizes keys in balanced hierarchical nodes, achieving O(log n) search time at the cost of O(n) auxiliary tree storage."
+  },
+  "executionTrace": [
+    {
+      "step": 1,
+      "codeLine": "SELECT * FROM users WHERE email = 'target_user@example.com';",
+      "action": "Full Table Scan (O(n))",
+      "memoryDetail": "The database engine checks every row for a match, streaming all 10,000 table pages from disk into memory."
+    },
+    {
+      "step": 2,
+      "codeLine": "CREATE INDEX idx_users_email ON users(email);",
+      "action": "B-Tree Index Construction",
+      "memoryDetail": "Sorts table keys and allocates hierarchical B-Tree nodes mapping each email string to its rowid pointer."
+    },
+    {
+      "step": 3,
+      "codeLine": "SELECT * FROM users WHERE email = 'target_user@example.com';",
+      "action": "Index Seek (O(log n))",
+      "memoryDetail": "The B-Tree root points to the correct leaf node in 2-3 page hops, directly retrieving rowid 8472."
+    }
+  ],
+  "pitfalls": [
+    {
+      "id": "index-bloat",
+      "title": "Index Bloat: Over-Indexing Slows Write Operations",
+      "severity": "high",
+      "description": "Creating too many indexes slows down INSERT, UPDATE, and DELETE operations because every write must update the B-Tree structure and maintain key balance.",
+      "badSnippet": "-- Over-indexing every single column in the table\nCREATE INDEX idx_all_1 ON users(name);\nCREATE INDEX idx_all_2 ON users(email);\nCREATE INDEX idx_all_3 ON users(created_at);",
+      "goodSnippet": "-- Index only high-cardinality columns frequently queried in WHERE or JOIN clauses\nCREATE INDEX idx_users_email ON users(email);"
+    },
+    {
+      "id": "wrong-column",
+      "title": "Wrong Column: Indexing Unfiltered Attributes",
+      "severity": "medium",
+      "description": "Indexing a column that is not used in WHERE, JOIN, or ORDER BY clauses consumes memory without improving query execution time.",
+      "badSnippet": "-- Indexing name when queries filter by email\nCREATE INDEX idx_users_name ON users(name);\nSELECT * FROM users WHERE email = 'target@example.com';",
+      "goodSnippet": "-- Match index columns to your application's query predicates\nCREATE INDEX idx_users_email ON users(email);\nSELECT * FROM users WHERE email = 'target@example.com';"
+    }
+  ],
+  "seniorInterviewTip": "Indexes make reads fast but writes slow. Every INSERT must update the B-Tree. In production, profile your slow queries before adding indexes."
+}

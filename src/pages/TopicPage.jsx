@@ -3,12 +3,14 @@ import { Link, useParams, useSearchParams, useLocation } from 'react-router-dom'
 import { tracks } from '../data/tracks.js'
 import NotFoundPage from './NotFoundPage'
 import CodeSandbox from '../components/CodeSandbox'
+import SqlSandbox from '../components/SqlSandbox'
 import GlassBoxOverlay from '../components/GlassBoxOverlay'
 import radialAudit from '../data/audits/radial-coordinates.json'
 import starAudit from '../data/audits/parametric-star.json'
 import transformsAudit from '../data/audits/coordinate-transforms.json'
 import bezierAudit from '../data/audits/bezier-curves.json'
 import strokeAudit from '../data/audits/stroke-animation.json'
+import dbIndexingAudit from '../data/audits/db-indexing.json'
 
 const VALID_TABS = ['concept', 'sandbox', 'audit']
 
@@ -18,6 +20,7 @@ const auditsByTopic = {
   'coordinate-transforms': transformsAudit,
   'bezier-curves': bezierAudit,
   'stroke-animation': strokeAudit,
+  'db-indexing': dbIndexingAudit,
 }
 
 export default function TopicPage() {
@@ -83,6 +86,32 @@ export default function TopicPage() {
     setSearchParams({ tab: newTab })
   }
 
+  const handleAha = () => {
+    try {
+      const storedList = localStorage.getItem('devcodex.completedChallenges')
+      const completed = storedList ? JSON.parse(storedList) : []
+      if (Array.isArray(completed) && !completed.includes(topicId)) {
+        const nextCompleted = [...completed, topicId]
+        const storedCount = parseInt(localStorage.getItem('devcodex.ahaCount') || '0', 10) || 0
+        const nextCount = storedCount + 1
+
+        localStorage.setItem('devcodex.completedChallenges', JSON.stringify(nextCompleted))
+        localStorage.setItem('devcodex.ahaCount', String(nextCount))
+
+        window.dispatchEvent(
+          new CustomEvent('devcodex:aha-moment', {
+            detail: { count: nextCount, lessonId: topicId },
+          })
+        )
+
+        setAhaToast('Aha! You unlocked this concept.')
+        setTimeout(() => setAhaToast(null), 2000)
+      }
+    } catch (err) {
+      console.error('Error updating Aha counter:', err)
+    }
+  }
+
   const handlePreviewRendered = (data) => {
     setPreviewDimensions({
       width: data.canvasWidth || 300,
@@ -97,29 +126,7 @@ export default function TopicPage() {
     const normAnswer = lesson.challengeAnswer.trim().replace(/\s+/g, ' ').replace(/;+\s*$/, '').toLowerCase()
 
     if (normAnswer && normStudent.includes(normAnswer)) {
-      try {
-        const storedList = localStorage.getItem('devcodex.completedChallenges')
-        const completed = storedList ? JSON.parse(storedList) : []
-        if (Array.isArray(completed) && !completed.includes(topicId)) {
-          const nextCompleted = [...completed, topicId]
-          const storedCount = parseInt(localStorage.getItem('devcodex.ahaCount') || '0', 10) || 0
-          const nextCount = storedCount + 1
-
-          localStorage.setItem('devcodex.completedChallenges', JSON.stringify(nextCompleted))
-          localStorage.setItem('devcodex.ahaCount', String(nextCount))
-
-          window.dispatchEvent(
-            new CustomEvent('devcodex:aha-moment', {
-              detail: { count: nextCount, lessonId: topicId },
-            })
-          )
-
-          setAhaToast('Aha! You unlocked this concept.')
-          setTimeout(() => setAhaToast(null), 2000)
-        }
-      } catch (err) {
-        console.error('Error updating Aha counter:', err)
-      }
+      handleAha()
     }
   }
 
@@ -283,31 +290,41 @@ export default function TopicPage() {
                 </div>
               ) : (
                 <>
-                  <CodeSandbox
-                    ref={codeSandboxRef}
-                    key={topicId}
-                    files={{ '/index.js': lesson.starterCode }}
-                    template="vanilla"
-                    editable={true}
-                    challengeBlankId={topicId}
-                    onRevealSolution={() => {}}
-                    hoveredLineRange={lesson.challenge?.blankLineRange}
-                    challengePrompt={lesson.challenge?.prompt}
-                    solutionCode={lesson.solutionCode}
-                    isOverlayVisible={showOverlay || isEditorHovered}
-                    onToggleOverlay={() => setShowOverlay((prev) => !prev)}
-                    onEditorHoverChange={setIsEditorHovered}
-                    onLineHover={setIsEditorHovered}
-                    onPreviewRendered={handlePreviewRendered}
-                    previewOverlay={
-                      <GlassBoxOverlay
-                        type={lesson.overlay?.type || 'radial'}
-                        params={lesson.overlay?.params}
-                        liveState={liveState}
-                        visible={showOverlay || isEditorHovered}
-                      />
-                    }
-                  />
+                  {trackId === 'dbms' ? (
+                    <SqlSandbox
+                      key={topicId}
+                      starterCode={lesson.starterCode}
+                      solutionCode={lesson.solutionCode}
+                      challengeAnswer={lesson.challengeAnswer}
+                      onAha={handleAha}
+                    />
+                  ) : (
+                    <CodeSandbox
+                      ref={codeSandboxRef}
+                      key={topicId}
+                      files={{ '/index.js': lesson.starterCode }}
+                      template="vanilla"
+                      editable={true}
+                      challengeBlankId={topicId}
+                      onRevealSolution={() => {}}
+                      hoveredLineRange={lesson.challenge?.blankLineRange}
+                      challengePrompt={lesson.challenge?.prompt}
+                      solutionCode={lesson.solutionCode}
+                      isOverlayVisible={showOverlay || isEditorHovered}
+                      onToggleOverlay={() => setShowOverlay((prev) => !prev)}
+                      onEditorHoverChange={setIsEditorHovered}
+                      onLineHover={setIsEditorHovered}
+                      onPreviewRendered={handlePreviewRendered}
+                      previewOverlay={
+                        <GlassBoxOverlay
+                          type={lesson.overlay?.type || 'radial'}
+                          params={lesson.overlay?.params}
+                          liveState={liveState}
+                          visible={showOverlay || isEditorHovered}
+                        />
+                      }
+                    />
+                  )}
 
                   {/* Tweak Levers Panel */}
                   {Array.isArray(lesson.tweaks) && lesson.tweaks.length > 0 && (

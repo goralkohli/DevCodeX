@@ -596,5 +596,49 @@ draw();`,
         }
       }
     }
+  },
+  dbms: {
+    id: 'dbms',
+    title: 'Databases & SQL (BCA Revision)',
+    topics: {
+      'db-indexing': {
+        title: 'Database Indexing & The 10,000-Row Scan',
+        badge: 'DBMS & Performance',
+        tags: ['CREATE INDEX', 'B-Tree', 'Full Table Scan', 'EXPLAIN QUERY PLAN'],
+        lesson: {
+          concept: {
+            heading: 'Why do databases need indexes?',
+            body: "Without an index, a database has to check every single row to find a match (a 'full table scan'). An index is a sorted lookup table that lets the database jump straight to the right row.",
+            analogy: "Imagine a library with 10,000 books. Without an index, you walk past every shelf. With an index, you jump straight to aisle 7, shelf 3."
+          },
+          starterCode: `-- 🎯 CHALLENGE: Create a B-Tree index on the email column
+-- to stop scanning all 10,000 rows!
+
+/* YOUR_CODE_HERE */
+
+SELECT * FROM users WHERE email = 'target_user@example.com';`,
+          solutionCode: `CREATE INDEX idx_users_email ON users(email);
+SELECT * FROM users WHERE email = 'target_user@example.com';`,
+          challengeAnswer: 'CREATE INDEX idx_users_email ON users(email);',
+          solutionRecipe: {
+            code: 'CREATE INDEX idx_users_email ON users(email);',
+            compatNote: 'Works in SQLite, PostgreSQL, and MySQL. (MySQL syntax: CREATE INDEX idx ON users (email);)'
+          },
+          tweaks: [
+            {
+              line: 4,
+              label: 'Table Name',
+              variable: 'users',
+              hint: 'The table to index.'
+            }
+          ],
+          challenge: {
+            prompt: 'Create a B-Tree index on the email column of table users: CREATE INDEX idx_users_email ON users(email);',
+            blankLineRange: [4, 4],
+            hint: 'Use standard SQL syntax: CREATE INDEX <index_name> ON <table>(<column>);'
+          }
+        }
+      }
+    }
   }
 };

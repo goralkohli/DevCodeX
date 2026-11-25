@@ -638,6 +638,117 @@ SELECT * FROM users WHERE email = 'target_user@example.com';`,
             hint: 'Use standard SQL syntax: CREATE INDEX <index_name> ON <table>(<column>);'
           }
         }
+      },
+      'arrays-vs-linked-lists': {
+        title: 'Arrays vs. Linked Lists',
+        badge: 'Data Structures',
+        tags: ['Memory Layout', 'Pointers', 'Traversal', 'O(1) vs O(N)'],
+        lesson: {
+          concept: {
+            heading: 'Sequential Memory vs. Pointer Chains',
+            body: 'Arrays store items in contiguous memory blocks, allowing instant O(1) math-based index lookup. Linked lists store nodes scattered arbitrarily across heap memory, requiring O(N) sequential pointer traversal to reach an element.',
+            analogy: 'An array is like numbered hotel rooms in a single hallway: room 47 is always 47 doors from the entrance. A linked list is a scavenger hunt: each clue only tells you where to find the next clue.'
+          },
+          starterCode: `// Data Structures: Sequential Memory vs. Pointer Chains
+const TARGET_INDEX = 47;
+
+class ListNode {
+  constructor(value) {
+    this.value = value;
+    this.next = null;
+  }
+}
+
+function findLinkedListItem(head, targetIndex) {
+  let current = head;
+  let steps = 0;
+
+  for (let i = 0; i < targetIndex; i++) {
+    if (!current) break;
+    steps++;
+
+    // 🎯 CHALLENGE: Advance the pointer to the next linked node!
+    // Without this, the loop is stuck infinitely on the head node.
+    /* YOUR_CODE_HERE */
+  }
+
+  return { node: current, steps };
+}`,
+          solutionCode: `// Data Structures: Sequential Memory vs. Pointer Chains
+const TARGET_INDEX = 47;
+
+class ListNode {
+  constructor(value) {
+    this.value = value;
+    this.next = null;
+  }
+}
+
+function findLinkedListItem(head, targetIndex) {
+  let current = head;
+  let steps = 0;
+
+  for (let i = 0; i < targetIndex; i++) {
+    if (!current) break;
+    steps++;
+
+    // 🎯 CHALLENGE: Advance the pointer to the next linked node!
+    // Without this, the loop is stuck infinitely on the head node.
+    current = current.next;
+  }
+
+  return { node: current, steps };
+}`,
+          challengeAnswer: 'current = current.next;',
+          solutionRecipe: {
+            code: `class ListNode {
+  constructor(value) {
+    this.value = value;
+    this.next = null;
+  }
+}
+
+class LinkedList {
+  constructor() {
+    this.head = null;
+    this.size = 0;
+  }
+
+  append(value) {
+    const node = new ListNode(value);
+    if (!this.head) {
+      this.head = node;
+    } else {
+      let curr = this.head;
+      while (curr.next) curr = curr.next;
+      curr.next = node;
+    }
+    this.size++;
+  }
+
+  get(index) {
+    if (index < 0 || index >= this.size) return null;
+    let curr = this.head;
+    for (let i = 0; i < index; i++) curr = curr.next;
+    return curr.value;
+  }
+}`,
+            compatNote: 'Native JavaScript Objects. Zero dependencies.'
+          },
+          tweaks: [
+            {
+              line: 2,
+              label: 'Target Index',
+              variable: 'TARGET_INDEX',
+              hint: 'Change to 10 or 80 to see how linked lists scale.'
+            }
+          ],
+          challenge: {
+            prompt: 'Advance the pointer to the next linked node: current = current.next;',
+            blankLineRange: [18, 18],
+            hint: 'Follow the pointer: assign current.next back to current.'
+          }
+        }
       }
     }
   }

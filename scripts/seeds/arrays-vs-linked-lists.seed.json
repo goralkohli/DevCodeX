@@ -1,0 +1,50 @@
+{
+  "topicId": "arrays-vs-linked-lists",
+  "topicTitle": "Arrays vs. Linked Lists",
+  "generatedAt": "2026-11-25T21:00:00.000Z",
+  "engine": "deepseek-chat",
+  "complexity": {
+    "time": "Lookup: Array O(1) vs Linked List O(n) | Insert: Array O(n) vs Linked List O(1)",
+    "space": "Array O(1) auxiliary vs Linked List O(n) pointer overhead",
+    "explanation": "Arrays allocate contiguous memory blocks, enabling instant O(1) pointer arithmetic for index lookups (base + index * size), but require O(n) element shifting for middle insertions. Linked lists store nodes dynamically in fragmented heap memory with O(1) pointer rewiring for insertions, but demand O(n) sequential pointer-chasing for lookups."
+  },
+  "executionTrace": [
+    {
+      "step": 1,
+      "codeLine": "let current = head; steps = 0;",
+      "action": "Head Pointer Initialization",
+      "memoryDetail": "Registers local stack reference pointing to the head node address in heap memory (0x1000)."
+    },
+    {
+      "step": 2,
+      "codeLine": "for (let i = 0; i < targetIndex; i++) { steps++; current = current.next; }",
+      "action": "Sequential Pointer Traversal (O(n))",
+      "memoryDetail": "Chases node.next references through disparate memory pages, dereferencing 47 individual heap addresses."
+    },
+    {
+      "step": 3,
+      "codeLine": "return { node: current, steps };",
+      "action": "Target Node Return",
+      "memoryDetail": "Returns reference to node at index 47 after 47 sequential memory read cycles."
+    }
+  ],
+  "pitfalls": [
+    {
+      "id": "null-pointer-dereference",
+      "title": "Null Pointer Dereference: Accessing .next on Null",
+      "severity": "high",
+      "description": "Attempting to read or assign current.next when current is null (such as reaching the tail of the list or passing an empty list) throws an unhandled TypeError.",
+      "badSnippet": "// Unsafe traversal without null check\nwhile (i < targetIndex) {\n  current = current.next; // Throws TypeError if targetIndex > list.length\n  i++;\n}",
+      "goodSnippet": "// Safe traversal with guard condition\nwhile (current && i < targetIndex) {\n  current = current.next;\n  i++;\n}"
+    },
+    {
+      "id": "lost-head-reference",
+      "title": "Lost Head Reference: Overwriting Head Pointer",
+      "severity": "high",
+      "description": "Reassigning the head pointer directly during traversal or insertion permanently severs access to the beginning of the list, causing unreachable nodes to be garbage-collected.",
+      "badSnippet": "// Directly advancing head pointer\nfunction traverse(head) {\n  while (head) {\n    console.log(head.value);\n    head = head.next; // Destroys access to earlier nodes!\n  }\n}",
+      "goodSnippet": "// Always copy head to a temporary cursor variable\nfunction traverse(head) {\n  let current = head;\n  while (current) {\n    console.log(current.value);\n    current = current.next;\n  }\n}"
+    }
+  ],
+  "seniorInterviewTip": "In modern computer architecture, Arrays almost always outperform Linked Lists in practice due to CPU cache locality. Contiguous array elements are fetched together into L1/L2 cache lines (64 bytes), whereas linked list nodes trigger cache misses on every pointer hop across heap memory."
+}

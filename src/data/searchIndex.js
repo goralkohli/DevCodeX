@@ -6,6 +6,7 @@ import transformsAudit from './audits/coordinate-transforms.json' with { type: '
 import bezierAudit from './audits/bezier-curves.json' with { type: 'json' }
 import strokeAudit from './audits/stroke-animation.json' with { type: 'json' }
 import dbIndexingAudit from './audits/db-indexing.json' with { type: 'json' }
+import arraysAudit from './audits/arrays-vs-linked-lists.json' with { type: 'json' }
 
 const auditsByTopic = {
   'radial-coordinates': radialAudit,
@@ -14,6 +15,7 @@ const auditsByTopic = {
   'bezier-curves': bezierAudit,
   'stroke-animation': strokeAudit,
   'db-indexing': dbIndexingAudit,
+  'arrays-vs-linked-lists': arraysAudit,
 }
 
 const truncate = (str, maxLen = 60) => {

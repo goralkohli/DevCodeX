@@ -4,6 +4,7 @@ import { tracks } from '../data/tracks.js'
 import NotFoundPage from './NotFoundPage'
 import CodeSandbox from '../components/CodeSandbox'
 import SqlSandbox from '../components/SqlSandbox'
+import DataStructuresSandbox from '../components/DataStructuresSandbox'
 import GlassBoxOverlay from '../components/GlassBoxOverlay'
 import radialAudit from '../data/audits/radial-coordinates.json'
 import starAudit from '../data/audits/parametric-star.json'
@@ -11,6 +12,7 @@ import transformsAudit from '../data/audits/coordinate-transforms.json'
 import bezierAudit from '../data/audits/bezier-curves.json'
 import strokeAudit from '../data/audits/stroke-animation.json'
 import dbIndexingAudit from '../data/audits/db-indexing.json'
+import arraysAudit from '../data/audits/arrays-vs-linked-lists.json'
 
 const VALID_TABS = ['concept', 'sandbox', 'audit']
 
@@ -21,6 +23,7 @@ const auditsByTopic = {
   'bezier-curves': bezierAudit,
   'stroke-animation': strokeAudit,
   'db-indexing': dbIndexingAudit,
+  'arrays-vs-linked-lists': arraysAudit,
 }
 
 export default function TopicPage() {
@@ -290,7 +293,15 @@ export default function TopicPage() {
                 </div>
               ) : (
                 <>
-                  {trackId === 'dbms' ? (
+                  {topicId === 'arrays-vs-linked-lists' ? (
+                    <DataStructuresSandbox
+                      key={topicId}
+                      starterCode={lesson.starterCode}
+                      solutionCode={lesson.solutionCode}
+                      challengeAnswer={lesson.challengeAnswer}
+                      onAha={handleAha}
+                    />
+                  ) : trackId === 'dbms' ? (
                     <SqlSandbox
                       key={topicId}
                       starterCode={lesson.starterCode}

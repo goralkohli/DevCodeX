@@ -8,6 +8,7 @@ const CATEGORIES = [
   'Execution Steps',
   'Pitfalls',
   'Interview Insights',
+  'Survival Recipes',
 ]
 
 export default function CommandPalette({ open, onOpenChange }) {

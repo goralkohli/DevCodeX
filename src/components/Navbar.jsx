@@ -99,17 +99,14 @@ export default function Navbar({ onOpenPalette }) {
               Tracks
             </NavLink>
             <NavLink
-              to="/tracks/canvas/radial-coordinates?tab=sandbox"
-              className={() => {
-                const isSandboxActive =
-                  location.pathname === '/tracks/canvas/radial-coordinates' &&
-                  location.search.includes('tab=sandbox')
-                return isSandboxActive
+              to="/reference"
+              className={({ isActive }) =>
+                isActive
                   ? 'text-primary font-semibold transition-colors'
                   : 'text-gray-300 hover:text-white transition-colors'
-              }}
+              }
             >
-              Sandbox
+              Reference
             </NavLink>
             <NavLink
               to="/clinic"

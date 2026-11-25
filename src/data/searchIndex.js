@@ -1,4 +1,5 @@
 import { tracks } from './tracks.js'
+import { SURVIVAL_RECIPES } from './referenceData.js'
 import radialAudit from './audits/radial-coordinates.json' with { type: 'json' }
 import starAudit from './audits/parametric-star.json' with { type: 'json' }
 import transformsAudit from './audits/coordinate-transforms.json' with { type: 'json' }
@@ -124,6 +125,26 @@ export function buildSearchIndex() {
         }
       }
     }
+  }
+
+  // 4. Survival Recipes
+  for (const recipe of SURVIVAL_RECIPES) {
+    items.push({
+      id: `recipe-${recipe.id}`,
+      category: 'Survival Recipes',
+      title: recipe.title,
+      subtitle: truncate(recipe.problem, 60),
+      keywords: [
+        recipe.id,
+        recipe.category.toLowerCase(),
+        ...recipe.id.split('-'),
+        ...recipe.title.toLowerCase().split(/\s+/).filter((w) => w.length > 2),
+        'recipe',
+        'survival',
+        'toolbelt',
+      ],
+      path: `/reference#${recipe.id}`,
+    })
   }
 
   return items
